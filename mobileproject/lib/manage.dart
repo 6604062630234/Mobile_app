@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class ManagePage extends StatefulWidget {
@@ -24,10 +25,17 @@ class _ManagePageState extends State<ManagePage> {
 
   Future<void> _fetchSchedules() async {
     try {
+
+      final prefs = await SharedPreferences.getInstance();
+      final String userEmail = prefs.getString('user_email') ?? '';
+
+      if (userEmail.isEmpty) return;
+
       String formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
       final response = await http.get(
-        Uri.parse('http://localhost:3000/get-schedules?date=$formattedDate'),
+        Uri.parse(
+            'http://localhost:3000/get-schedules?date=$formattedDate&email=$userEmail'),
       );
 
       if (response.statusCode == 200) {
@@ -217,7 +225,8 @@ class _ManagePageState extends State<ManagePage> {
                         ),
                         Text(
                           DateFormat('EEE. MMMM yyyy').format(_selectedDate),
-                          style: const TextStyle(color: Colors.white, fontSize: 18),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18),
                         ),
                         const SizedBox(height: 4),
                         const Icon(Icons.calendar_month,
@@ -227,7 +236,8 @@ class _ManagePageState extends State<ManagePage> {
                   ),
 
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+                    icon: const Icon(Icons.arrow_forward_ios,
+                        color: Colors.white),
                     onPressed: () => _changeDate(1),
                   ),
                 ],
@@ -246,12 +256,15 @@ class _ManagePageState extends State<ManagePage> {
                         )
                       : ListView.builder(
                           itemCount: _schedules.length,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 20),
                           itemBuilder: (context, index) {
                             var item = _schedules[index];
 
-                            String colorCode = item['color'].replaceAll('#', '');
-                            Color cardColor = Color(int.parse("0xff$colorCode"));
+                            String colorCode =
+                                item['color'].replaceAll('#', '');
+                            Color cardColor =
+                                Color(int.parse("0xff$colorCode"));
 
                             return Container(
                               margin: const EdgeInsets.only(bottom: 15),
@@ -260,15 +273,18 @@ class _ManagePageState extends State<ManagePage> {
                                 color: cardColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(15),
                                 border: Border(
-                                  left: BorderSide(color: cardColor, width: 5),
+                                  left:
+                                      BorderSide(color: cardColor, width: 5),
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           item['title'],
@@ -309,14 +325,15 @@ class _ManagePageState extends State<ManagePage> {
           unselectedItemColor: Colors.grey,
           currentIndex: 1,
           onTap: (index) {
-            if (index == 0)
+            if (index == 0) {
               Navigator.pushReplacementNamed(context, '/homepage');
-            else if (index == 2)
+            } else if (index == 2) {
               Navigator.pushReplacementNamed(context, '/add');
-            else if (index == 3)
+            } else if (index == 3) {
               Navigator.pushReplacementNamed(context, '/notification');
-            else if (index == 4)
+            } else if (index == 4) {
               Navigator.pushReplacementNamed(context, '/profile');
+            }
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

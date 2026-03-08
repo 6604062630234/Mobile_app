@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -22,7 +23,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
     _fetchNotifications();
 
-    // refresh ทุก 30 วินาที (รองรับ Chrome / Windows)
+    // refresh ทุก 30 วินาที
     _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
       if (mounted) {
         _fetchNotifications();
@@ -38,10 +39,17 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> _fetchNotifications() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final String userEmail = prefs.getString('user_email') ?? '';
+
+      if (userEmail.isEmpty) return;
+
       String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
       final response = await http.get(
-        Uri.parse('http://localhost:3000/get-schedules?date=$today'),
+        Uri.parse(
+          'http://localhost:3000/get-schedules?date=$today&email=$userEmail',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -84,6 +92,7 @@ class _NotificationPageState extends State<NotificationPage> {
         });
       } else {
         if (!mounted) return;
+
         setState(() {
           _loading = false;
         });
@@ -92,6 +101,7 @@ class _NotificationPageState extends State<NotificationPage> {
       debugPrint("Notification Error: $e");
 
       if (!mounted) return;
+
       setState(() {
         _loading = false;
       });
@@ -105,6 +115,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
     return Scaffold(
       backgroundColor: primaryBgColor,
+
       appBar: AppBar(
         backgroundColor: primaryBgColor,
         elevation: 0,
@@ -114,9 +125,11 @@ class _NotificationPageState extends State<NotificationPage> {
           style: TextStyle(color: Colors.white),
         ),
       ),
+
       body: Column(
         children: [
           const Divider(color: Colors.white24, height: 1),
+
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -143,6 +156,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 15),
                             padding: const EdgeInsets.all(15),
+
                             decoration: BoxDecoration(
                               color: cardColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(15),
@@ -153,10 +167,13 @@ class _NotificationPageState extends State<NotificationPage> {
                                 ),
                               ),
                             ),
+
                             child: Column(
                               crossAxisAlignment:
                                   CrossAxisAlignment.start,
+
                               children: [
+
                                 Text(
                                   item['title'] ?? '',
                                   style: const TextStyle(
@@ -165,21 +182,27 @@ class _NotificationPageState extends State<NotificationPage> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+
                                 const SizedBox(height: 8),
+
                                 Text(
                                   "${item['time_start'].substring(0, 5)} - ${item['time_end'].substring(0, 5)}",
                                   style: const TextStyle(
                                     color: Colors.white70,
                                   ),
                                 ),
+
                                 const SizedBox(height: 6),
+
                                 Text(
                                   item['description'] ?? '',
                                   style: const TextStyle(
                                     color: Colors.white60,
                                   ),
                                 ),
+
                                 const SizedBox(height: 10),
+
                                 const Row(
                                   children: [
                                     Icon(
@@ -197,6 +220,7 @@ class _NotificationPageState extends State<NotificationPage> {
                                     ),
                                   ],
                                 ),
+
                               ],
                             ),
                           );
@@ -205,12 +229,14 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
         ],
       ),
+
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: highlightColor,
         unselectedItemColor: Colors.grey,
         currentIndex: 3,
+
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/homepage');
@@ -222,6 +248,7 @@ class _NotificationPageState extends State<NotificationPage> {
             Navigator.pushReplacementNamed(context, '/profile');
           }
         },
+
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Manage'),

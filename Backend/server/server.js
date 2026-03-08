@@ -13,8 +13,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',         
-    password: 'K0618649432xyz',         
-    database: 'my_schedule'
+    password: 'astrapl456@',         
+    database: 'myschedule'
 });
 
 db.connect((err) => {
@@ -77,13 +77,38 @@ app.post('/login', (req, res) => {
     });
 });
 
+app.get('/search-schedules', (req, res) => {
+
+  const { title, email } = req.query;
+
+  const sql = `
+    SELECT id, title, description, date, time_start, time_end, color
+    FROM schedules
+    WHERE email = ?
+    AND title LIKE ?
+    ORDER BY date ASC, time_start ASC
+  `;
+
+  db.query(sql, [email, `%${title}%`], (err, result) => {
+
+    if (err) {
+      console.log(err);
+      return res.status(500).send(err);
+    }
+
+    res.json(result);
+  });
+});
+
 app.post('/add-schedule', (req, res) => {
-    const { date, title, description, time_start, time_end, color } = req.body;
+    // 1. รับค่า email จาก req.body ที่ส่งมาจาก Flutter
+    const { email, date, title, description, time_start, time_end, color } = req.body;
 
-    const query = `INSERT INTO schedules (date, title, description, time_start, time_end, color) 
-                   VALUES (?, ?, ?, ?, ?, ?)`;
+    // 2. ปรับ Query ให้รวมคอลัมน์ email เข้าไปด้วย
+    const query = `INSERT INTO schedules (email, date, title, description, time_start, time_end, color) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [date, title, description, time_start, time_end, color], (err, result) => {
+    db.query(query, [email, date, title, description, time_start, time_end, color], (err, result) => {
         if (err) {
             console.error('Error saving schedule:', err);
             return res.status(500).json({ status: 'error', message: err.message });
@@ -93,13 +118,24 @@ app.post('/add-schedule', (req, res) => {
 });
 
 app.get('/get-schedules', (req, res) => {
-    const { date } = req.query; // รับวันที่มาจาก Flutter
-    const query = 'SELECT * FROM schedules WHERE date = ? ORDER BY time_start ASC';
 
-    db.query(query, [date], (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json(results); // ส่งรายการข้อมูลกลับไป
-    });
+  const { date, email } = req.query;
+
+  const sql = `
+    SELECT * FROM schedules
+    WHERE date = ?
+    AND email = ?
+    ORDER BY time_start ASC
+  `;
+
+  db.query(sql, [date, email], (err, result) => {
+
+    if (err) {
+      return res.status(500).json(err);
+    }
+
+    res.json(result);
+  });
 });
 
 app.put('/update-schedule/:id', (req, res) => {

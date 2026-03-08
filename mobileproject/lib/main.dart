@@ -9,6 +9,7 @@ import 'manage.dart';
 import 'edit.dart';
 import 'signup.dart';
 import 'notification.dart';
+import 'search_result.dart';
 
 void main() async {
   //Test From 6604062630323
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
         '/edit': (context) => const EditPage(),
         '/signup': (context) => const SignUpPage(),
         '/notification': (context) => const NotificationPage(),
+        '/search': (context) => const SearchResultPage(searchText: ''),
       },
     );
   }
