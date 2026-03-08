@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'login.dart';
 import 'homepage.dart';
 import 'add_schedule.dart';
-import 'profile.dart'; 
+import 'profile.dart';
 import 'manage.dart';
 import 'edit.dart';
+import 'signup.dart';
+import 'notification.dart';
 
 void main() async {
   //Test From 6604062630323
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 
@@ -39,19 +42,14 @@ class MyApp extends StatelessWidget {
       initialRoute: isLoggedIn ? '/homepage' : '/login',
 
       routes: {
-
         '/login': (context) => const LoginPage(),
-
         '/homepage': (context) => const MyHomePage(title: 'My Schedule'),
-
         '/add': (context) => const AddSchedulePage(),
-
         '/profile': (context) => const ProfilePage(),
-
         '/manage': (context) => const ManagePage(),
-
         '/edit': (context) => const EditPage(),
-
+        '/signup': (context) => const SignUpPage(),
+        '/notification': (context) => const NotificationPage(),
       },
     );
   }

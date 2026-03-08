@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const app = express();
 app.use(cors());
@@ -23,25 +25,54 @@ db.connect((err) => {
     console.log('เชื่อมต่อกับ MySQL Database สำเร็จแล้ว!');
 });
 
-//API สำหรับเช็ค Login
-app.post('/login', (req, res) => {
-    console.log("Login request:", req.body);
+// API สำหรับลงทะเบียน (Sign Up)
+app.post('/register', async (req, res) => {
     const { email, password } = req.body;
 
-    // ค้นหาในตาราง user_credentials
-    const query = 'SELECT * FROM user_credentials WHERE email = ? AND password = ?';
-    
-    db.query(query, [email, password], (err, result) => {
-        if (err) {
-            return res.status(500).json({ status: 'error', message: err.message });
-        }
-        
+    try {
+        // 1. ตรวจสอบว่ามีอีเมลนี้ในระบบหรือยัง
+        const checkQuery = 'SELECT * FROM user_credentials WHERE email = ?';
+        db.query(checkQuery, [email], async (err, result) => {
+            if (result.length > 0) {
+                return res.json({ status: 'error', message: 'Email already exists' });
+            }
+
+            // 2. เข้ารหัสรหัสผ่านก่อนบันทึก
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+            // 3. บันทึกลง Database
+            const insertQuery = 'INSERT INTO user_credentials (email, password) VALUES (?, ?)';
+            db.query(insertQuery, [email, hashedPassword], (err, result) => {
+                if (err) {
+                    return res.status(500).json({ status: 'error', message: err.message });
+                }
+                res.json({ status: 'success', message: 'User registered successfully' });
+            });
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: 'Server error' });
+    }
+});
+
+//API สำหรับเช็ค Login
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    const query = 'SELECT * FROM user_credentials WHERE email = ?';
+
+    db.query(query, [email], async (err, result) => {
+        if (err) return res.status(500).json({ status: 'error', message: err.message });
+
         if (result.length > 0) {
-            // ถ้าเจอข้อมูล (Login สำเร็จ)
-            res.json({ status: 'success', message: 'Login Successful' });
+            // ใช้ bcrypt.compare เพื่อเทียบรหัสผ่านที่รับมา กับรหัสที่เข้ารหัสไว้ใน DB
+            const match = await bcrypt.compare(password, result[0].password);
+            
+            if (match) {
+                res.json({ status: 'success', message: 'Login Successful' });
+            } else {
+                res.json({ status: 'error', message: 'Invalid Password' });
+            }
         } else {
-            // ถ้าไม่เจอข้อมูล (Email หรือ Password ผิด)
-            res.json({ status: 'error', message: 'Invalid Email or Password' });
+            res.json({ status: 'error', message: 'User not found' });
         }
     });
 });
@@ -109,7 +140,10 @@ app.post("/delete-schedule", (req, res) => {
     }
   );
 });
-
+app.use((req, res) => {
+    console.log(`มีคนเรียกไปที่ Path: ${req.url} ด้วย Method: ${req.method} แต่หาไม่เจอ!`);
+    res.status(404).json({ status: 'error', message: 'Path not found on server' });
+});
 //สั่งให้ Server ทำงานที่ Port 3000
 app.listen(3000, '0.0.0.0', () => {
     console.log('Server runs at http://localhost:3000');

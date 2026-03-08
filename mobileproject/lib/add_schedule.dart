@@ -21,8 +21,40 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   Color _selectedColor = const Color(0xFF8DB4B1);
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveSchedule() async {
     try {
+
+      // กันเวลา end < start
+      final start = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _startTime.hour,
+        _startTime.minute,
+      );
+
+      final end = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _endTime.hour,
+        _endTime.minute,
+      );
+
+      if (end.isBefore(start)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('End time must be after start time')),
+        );
+        return;
+      }
+
       final response = await http.post(
         Uri.parse('http://localhost:3000/add-schedule'),
         headers: {'Content-Type': 'application/json'},
@@ -43,10 +75,13 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
       if (data['status'] == 'success') {
         if (!mounted) return;
-        Navigator.pop(context, true);
+
+        Navigator.pop(context, true); // refresh homepage
       }
+
     } catch (e) {
       debugPrint("Error: $e");
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ไม่สามารถเชื่อมต่อกับ Server ได้')),
       );
@@ -60,7 +95,12 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked != null) setState(() => _selectedDate = picked);
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
   }
 
   Future<void> _pickTime(bool isStart) async {
@@ -91,140 +131,206 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
     return Scaffold(
       backgroundColor: primaryBgColor,
+
       appBar: AppBar(
         backgroundColor: primaryBgColor,
         elevation: 0,
-        title: const Text('Add New Schedule',
-            style: TextStyle(color: Colors.white)),
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'Add New Schedule',
+          style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(25),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Title', style: TextStyle(color: Colors.white)),
-            const SizedBox(height: 10),
 
-            TextField(
-              controller: _titleController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Enter title...',
-                hintStyle: const TextStyle(color: Colors.white38),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.1),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none),
+      body: Column(
+        children: [
+          const Divider(color: Colors.white24, height: 1),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(25),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  const Text('Title', style: TextStyle(color: Colors.white)),
+                  const SizedBox(height: 10),
+
+                  TextField(
+                    controller: _titleController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Enter title...',
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Text('Description', style: TextStyle(color: Colors.white)),
+                  const SizedBox(height: 10),
+
+                  TextField(
+                    controller: _descriptionController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Enter description...',
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  Row(
+                    children: [
+
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _pickDate,
+                          child: _buildInfoTile(
+                            'Date',
+                            DateFormat('dd/MM/yyyy').format(_selectedDate),
+                            Icons.calendar_today,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _pickTime(true),
+                          child: _buildInfoTile(
+                            'Start',
+                            startTimeStr,
+                            Icons.access_time,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _pickTime(false),
+                          child: _buildInfoTile(
+                            'End',
+                            endTimeStr,
+                            Icons.access_time,
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  const Text(
+                    'Select Color',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  Row(
+                    children: [
+                      _colorOption(blueColor, 'Blue'),
+                      const SizedBox(width: 15),
+                      _colorOption(const Color(0xFFE91E63), 'Pink'),
+                      const SizedBox(width: 15),
+                      _colorOption(const Color(0xFF2E671D), 'Green'),
+                    ],
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: highlightColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+
+                      onPressed: () async {
+
+                        if (_titleController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('กรุณากรอกชื่อหัวข้อ')),
+                          );
+                          return;
+                        }
+
+                        await _saveSchedule();
+                      },
+
+                      child: const Text(
+                        'Save Schedule',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+          ),
+        ],
+      ),
 
-            const SizedBox(height: 20),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: blueColor,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 2,
 
-            const Text('Description', style: TextStyle(color: Colors.white)),
-            const SizedBox(height: 10),
+        onTap: (index) {
 
-            TextField(
-              controller: _descriptionController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Enter description...',
-                hintStyle: const TextStyle(color: Colors.white38),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.1),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none),
-              ),
-            ),
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/homepage');
+          } else if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/manage');
+          } else if (index == 3) {
+            Navigator.pushReplacementNamed(context, '/notification');
+          } else if (index == 4) {
+            Navigator.pushReplacementNamed(context, '/profile');
+          }
 
-            const SizedBox(height: 30),
+        },
 
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _pickDate,
-                    child: _buildInfoTile(
-                        'Date',
-                        DateFormat('dd/MM/yyyy').format(_selectedDate),
-                        Icons.calendar_today),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _pickTime(true),
-                    child:
-                        _buildInfoTile('Start', startTimeStr, Icons.access_time),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _pickTime(false),
-                    child:
-                        _buildInfoTile('End', endTimeStr, Icons.access_time),
-                  ),
-                ),
-              ],
-            ),
+        items: const [
 
-            const SizedBox(height: 30),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Manage'),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Notification',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
 
-            const Text(
-              'Select Color',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-
-            const SizedBox(height: 15),
-
-            Row(
-              children: [
-                _colorOption(blueColor, 'Blue'),
-                const SizedBox(width: 15),
-                _colorOption(const Color(0xFFE91E63), 'Pink'),
-                const SizedBox(width: 15),
-                _colorOption(const Color(0xFF2E671D), 'Green'),
-              ],
-            ),
-
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: highlightColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () async {
-                  if (_titleController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('กรุณากรอกชื่อหัวข้อ')),
-                    );
-                    return;
-                  }
-
-                  await _saveSchedule();
-                },
-                child: const Text(
-                  'Save Schedule',
-                  style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -233,18 +339,26 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+
         Text(label, style: const TextStyle(color: Colors.white)),
+
         const SizedBox(height: 8),
+
         Container(
           padding: const EdgeInsets.all(12),
+
           decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10)),
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+
               Text(value, style: const TextStyle(color: Colors.white)),
               Icon(icon, color: Colors.white38),
+
             ],
           ),
         ),
@@ -261,17 +375,24 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
           _selectedColor = color;
         });
       },
+
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(20),
-          border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
+          border: isSelected
+              ? Border.all(color: Colors.white, width: 2)
+              : null,
         ),
+
         child: Text(
           label,
           style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold),
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

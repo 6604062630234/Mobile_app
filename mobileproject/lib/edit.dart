@@ -26,6 +26,13 @@ class _EditPageState extends State<EditPage> {
   bool _loaded = false;
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
@@ -41,7 +48,6 @@ class _EditPageState extends State<EditPage> {
       _titleController.text = args['title'] ?? "";
       _descriptionController.text = args['description'] ?? "";
 
-      /// ใช้วันที่เดิมของ Activity
       _selectedDate = DateTime.parse(args['date']).toLocal();
 
       _startTime = _parseTime(args['time_start']);
@@ -92,7 +98,6 @@ class _EditPageState extends State<EditPage> {
         }),
       );
 
-      /// เช็ค statusCode ก่อน decode
       if (response.statusCode == 200) {
 
         final data = jsonDecode(response.body);
@@ -102,10 +107,6 @@ class _EditPageState extends State<EditPage> {
           if (!mounted) return;
 
           Navigator.pop(context, true);
-
-        } else {
-
-          throw Exception(data['message']);
 
         }
 
@@ -410,11 +411,7 @@ class _EditPageState extends State<EditPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
       ),
-
     );
-
   }
-
 }
