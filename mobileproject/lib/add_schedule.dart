@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class AddSchedulePage extends StatefulWidget {
@@ -30,7 +31,8 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   Future<void> _saveSchedule() async {
     try {
-
+    final prefs = await SharedPreferences.getInstance();
+    final String userEmail = prefs.getString('user_email') ?? '';
       // กันเวลา end < start
       final start = DateTime(
         _selectedDate.year,
@@ -68,6 +70,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
               "${_endTime.hour.toString().padLeft(2, '0')}:${_endTime.minute.toString().padLeft(2, '0')}:00",
           'color':
               '#${_selectedColor.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+          'email': userEmail,
         }),
       );
 

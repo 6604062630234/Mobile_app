@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class MyHomePage extends StatefulWidget {
@@ -23,11 +24,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _fetchSchedules() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final String userEmail = prefs.getString('user_email') ?? '';
+
+    if (userEmail.isEmpty) return;
       String formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
       final response = await http.get(
-        Uri.parse('http://localhost:3000/get-schedules?date=$formattedDate'),
-      );
+      Uri.parse('http://localhost:3000/get-schedules?date=$formattedDate&email=$userEmail'),
+    );
 
       if (response.statusCode == 200) {
         if (!mounted) return;
