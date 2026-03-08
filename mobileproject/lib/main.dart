@@ -6,6 +6,7 @@ import 'add_schedule.dart';
 import 'profile.dart'; 
 import 'manage.dart';
 import 'edit.dart';
+import 'signup.dart';
 
 void main() async {
 
@@ -39,18 +40,13 @@ class MyApp extends StatelessWidget {
       initialRoute: isLoggedIn ? '/homepage' : '/login',
 
       routes: {
-
         '/login': (context) => const LoginPage(),
-
         '/homepage': (context) => const MyHomePage(title: 'My Schedule'),
-
         '/add': (context) => const AddSchedulePage(),
-
         '/profile': (context) => const ProfilePage(),
-
         '/manage': (context) => const ManagePage(),
-
         '/edit': (context) => const EditPage(),
+        '/signup': (context) => const SignUpPage(),
 
       },
     );

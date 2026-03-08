@@ -226,6 +226,25 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: blueColor,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 2,
+        onTap: (index) {
+          if (index == 0) Navigator.pushReplacementNamed(context, '/homepage');
+          else if (index == 1) Navigator.pushReplacementNamed(context, '/manage');
+          else if (index == 4) Navigator.pushReplacementNamed(context, '/profile');
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Manage'),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notification'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
     );
   }
 

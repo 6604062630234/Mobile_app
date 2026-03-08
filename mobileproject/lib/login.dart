@@ -117,7 +117,32 @@ class _LoginPageState extends State<LoginPage> {
                         child: const Text('Log In', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                       ),
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 80),
+                    Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    const Text(
+      "Don't have an account? ",
+      style: TextStyle(color: Colors.white70),
+    ),
+    GestureDetector(
+      onTap: () {
+        // พาไปหน้า Sign Up
+        Navigator.pushNamed(context, '/signup');
+      },
+      child: const Text(
+        "Sign Up",
+        style: TextStyle(
+          color: Color.fromARGB(255, 0, 0, 0), // ใช้สีเดียวกับปุ่ม Login (highlightColor)
+          fontWeight: FontWeight.bold,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    ),
+  ],
+  
+),
+const SizedBox(height: 50),
                   ],
                 ),
               ),

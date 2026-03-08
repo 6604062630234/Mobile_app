@@ -178,6 +178,7 @@ class _ManagePageState extends State<ManagePage> {
   Widget build(BuildContext context) {
 
     const Color primaryBgColor = Color(0xFF32363E);
+    const Color highlightColor = Color(0xFF8DB4B1);
 
     return Scaffold(
 
@@ -312,6 +313,27 @@ class _ManagePageState extends State<ManagePage> {
 
         ],
       ),
+
+    bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: highlightColor,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 1,
+        onTap: (index) {
+          if (index == 0) Navigator.pushReplacementNamed(context, '/homepage');
+          else if (index == 2) Navigator.pushReplacementNamed(context, '/add');
+          else if (index == 4) Navigator.pushReplacementNamed(context, '/profile');
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Manage'),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notification'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
     );
+    
   }
 }

@@ -55,7 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 10),
               
-              // แก้ไขจุดนี้: แสดงอีเมลที่ดึงมาจากตัวแปร _displayEmail
+              //แสดงอีเมลที่ดึงมาจากตัวแปร _displayEmail
               Text(
                 _displayEmail, 
                 style: const TextStyle(color: Colors.white70, fontSize: 16),
