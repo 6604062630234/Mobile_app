@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'notification_service.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -36,51 +35,9 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _schedules = jsonDecode(response.body);
         });
-
-        await _syncNotifications();
       }
     } catch (e) {
       debugPrint("Error fetching schedules: $e");
-    }
-  }
-
-  Future<void> _syncNotifications() async {
-    DateTime now = DateTime.now();
-
-    for (var item in _schedules) {
-      int id = item['id'];
-
-      List startParts = item['time_start'].split(":");
-      List endParts = item['time_end'].split(":");
-
-      DateTime startTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        int.parse(startParts[0]),
-        int.parse(startParts[1]),
-      );
-
-      DateTime endTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        int.parse(endParts[0]),
-        int.parse(endParts[1]),
-      );
-
-      if (now.isBefore(startTime)) {
-        await NotificationService.scheduleNotification(
-          id: id,
-          title: item['title'],
-          body: "Activity starting now",
-          time: startTime,
-        );
-      }
-
-      if (now.isAfter(endTime)) {
-        await NotificationService.cancelNotification(id);
-      }
     }
   }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'notification_service.dart';
 
 class EditPage extends StatefulWidget {
   const EditPage({super.key});
@@ -27,6 +26,13 @@ class _EditPageState extends State<EditPage> {
   bool _loaded = false;
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
@@ -42,7 +48,6 @@ class _EditPageState extends State<EditPage> {
       _titleController.text = args['title'] ?? "";
       _descriptionController.text = args['description'] ?? "";
 
-      /// ใช้วันที่เดิมของ Activity
       _selectedDate = DateTime.parse(args['date']).toLocal();
 
       _startTime = _parseTime(args['time_start']);
@@ -93,29 +98,16 @@ class _EditPageState extends State<EditPage> {
         }),
       );
 
-      /// เช็ค statusCode ก่อน decode
       if (response.statusCode == 200) {
 
         final data = jsonDecode(response.body);
 
         if (data['status'] == 'success') {
 
-          DateTime startTime = DateTime(
-            _selectedDate.year,
-            _selectedDate.month,
-            _selectedDate.day,
-            _startTime.hour,
-            _startTime.minute,
-          );
-
-          await NotificationService.scheduleNotification(
-            id: scheduleId,
-            title: _titleController.text,
-            body: "Activity starting now",
-            time: startTime,
-          );
+          if (!mounted) return;
 
           Navigator.pop(context, true);
+
         }
 
       } else {
@@ -330,7 +322,6 @@ class _EditPageState extends State<EditPage> {
         ),
 
       ),
-      
 
     );
 
@@ -385,7 +376,6 @@ class _EditPageState extends State<EditPage> {
           ),
 
         )
-        
 
       ],
     );

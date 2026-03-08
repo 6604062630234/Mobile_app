@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import 'dart:async';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -13,17 +14,26 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage> {
   List<dynamic> _notifications = [];
   bool _loading = true;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
+
     _fetchNotifications();
 
-    Future.doWhile(() async {
-      await Future.delayed(const Duration(seconds: 30));
-      _fetchNotifications();
-      return true;
+    // refresh ทุก 30 วินาที (รองรับ Chrome / Windows)
+    _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) {
+        _fetchNotifications();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchNotifications() async {
@@ -40,6 +50,10 @@ class _NotificationPageState extends State<NotificationPage> {
         DateTime now = DateTime.now();
 
         List filtered = data.where((item) {
+          if (item['time_start'] == null || item['time_end'] == null) {
+            return false;
+          }
+
           List startParts = item['time_start'].split(":");
           List endParts = item['time_end'].split(":");
 
@@ -62,13 +76,25 @@ class _NotificationPageState extends State<NotificationPage> {
           return now.isAfter(startTime) && now.isBefore(endTime);
         }).toList();
 
+        if (!mounted) return;
+
         setState(() {
           _notifications = filtered;
+          _loading = false;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() {
           _loading = false;
         });
       }
     } catch (e) {
       debugPrint("Notification Error: $e");
+
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+      });
     }
   }
 
@@ -79,7 +105,6 @@ class _NotificationPageState extends State<NotificationPage> {
 
     return Scaffold(
       backgroundColor: primaryBgColor,
-
       appBar: AppBar(
         backgroundColor: primaryBgColor,
         elevation: 0,
@@ -89,11 +114,9 @@ class _NotificationPageState extends State<NotificationPage> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-
       body: Column(
         children: [
           const Divider(color: Colors.white24, height: 1),
-
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -111,7 +134,9 @@ class _NotificationPageState extends State<NotificationPage> {
                           var item = _notifications[index];
 
                           String colorCode =
-                              item['color'].replaceAll('#', '');
+                              (item['color'] ?? '#8DB4B1')
+                                  .replaceAll('#', '');
+
                           Color cardColor =
                               Color(int.parse("0xff$colorCode"));
 
@@ -133,34 +158,28 @@ class _NotificationPageState extends State<NotificationPage> {
                                   CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item['title'],
+                                  item['title'] ?? '',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-
                                 const SizedBox(height: 8),
-
                                 Text(
                                   "${item['time_start'].substring(0, 5)} - ${item['time_end'].substring(0, 5)}",
                                   style: const TextStyle(
                                     color: Colors.white70,
                                   ),
                                 ),
-
                                 const SizedBox(height: 6),
-
                                 Text(
                                   item['description'] ?? '',
                                   style: const TextStyle(
                                     color: Colors.white60,
                                   ),
                                 ),
-
                                 const SizedBox(height: 10),
-
                                 const Row(
                                   children: [
                                     Icon(
@@ -186,7 +205,6 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
         ],
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
@@ -194,14 +212,15 @@ class _NotificationPageState extends State<NotificationPage> {
         unselectedItemColor: Colors.grey,
         currentIndex: 3,
         onTap: (index) {
-          if (index == 0)
+          if (index == 0) {
             Navigator.pushReplacementNamed(context, '/homepage');
-          else if (index == 1)
+          } else if (index == 1) {
             Navigator.pushReplacementNamed(context, '/manage');
-          else if (index == 2)
+          } else if (index == 2) {
             Navigator.pushReplacementNamed(context, '/add');
-          else if (index == 4)
+          } else if (index == 4) {
             Navigator.pushReplacementNamed(context, '/profile');
+          }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

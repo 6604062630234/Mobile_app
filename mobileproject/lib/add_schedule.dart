@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'notification_service.dart';
 
 class AddSchedulePage extends StatefulWidget {
   const AddSchedulePage({super.key});
@@ -22,8 +21,40 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   Color _selectedColor = const Color(0xFF8DB4B1);
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveSchedule() async {
     try {
+
+      // กันเวลา end < start
+      final start = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _startTime.hour,
+        _startTime.minute,
+      );
+
+      final end = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _endTime.hour,
+        _endTime.minute,
+      );
+
+      if (end.isBefore(start)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('End time must be after start time')),
+        );
+        return;
+      }
+
       final response = await http.post(
         Uri.parse('http://localhost:3000/add-schedule'),
         headers: {'Content-Type': 'application/json'},
@@ -43,25 +74,14 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       final data = jsonDecode(response.body);
 
       if (data['status'] == 'success') {
-        DateTime startTime = DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _startTime.hour,
-          _startTime.minute,
-        );
+        if (!mounted) return;
 
-        await NotificationService.scheduleNotification(
-          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          title: _titleController.text,
-          body: "Activity starting now",
-          time: startTime,
-        );
-
-        Navigator.pop(context, true);
+        Navigator.pop(context, true); // refresh homepage
       }
+
     } catch (e) {
       debugPrint("Error: $e");
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ไม่สามารถเชื่อมต่อกับ Server ได้')),
       );
@@ -75,7 +95,12 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked != null) setState(() => _selectedDate = picked);
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
   }
 
   Future<void> _pickTime(bool isStart) async {

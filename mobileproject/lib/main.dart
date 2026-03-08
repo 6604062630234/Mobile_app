@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'login.dart';
 import 'homepage.dart';
 import 'add_schedule.dart';
-import 'profile.dart'; 
+import 'profile.dart';
 import 'manage.dart';
 import 'edit.dart';
 import 'signup.dart';
-import 'notification_service.dart';
 import 'notification.dart';
 
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await NotificationService.init();
-  
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 
