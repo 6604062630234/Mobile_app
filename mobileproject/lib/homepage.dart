@@ -31,6 +31,8 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       if (response.statusCode == 200) {
+        if (!mounted) return;
+
         setState(() {
           _schedules = jsonDecode(response.body);
         });
@@ -136,10 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.white,
-                  ),
+                  icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                   onPressed: () => _changeDate(-1),
                 ),
 
@@ -175,10 +174,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
 
                 IconButton(
-                  icon: const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
-                  ),
+                  icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
                   onPressed: () => _changeDate(1),
                 ),
               ],
@@ -266,17 +262,25 @@ class _MyHomePageState extends State<MyHomePage> {
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
         onTap: (index) async {
+
           if (index == 1) {
             final result = await Navigator.pushNamed(context, '/manage');
             if (result == true) _fetchSchedules();
-          } else if (index == 2) {
+          }
+
+          else if (index == 2) {
             final result = await Navigator.pushNamed(context, '/add');
             if (result == true) _fetchSchedules();
-          } else if (index == 3) {
+          }
+
+          else if (index == 3) {
             Navigator.pushReplacementNamed(context, '/notification');
-          } else if (index == 4) {
+          }
+
+          else if (index == 4) {
             Navigator.pushReplacementNamed(context, '/profile');
           }
+
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
