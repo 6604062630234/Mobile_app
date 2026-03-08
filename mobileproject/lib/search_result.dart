@@ -58,15 +58,17 @@ class _SearchResultPageState extends State<SearchResultPage> {
       groupedSchedules.clear();
 
       for (var item in schedules) {
+        DateTime rawDate = DateTime.parse(item['date']).toLocal();
+        String dateKey = DateFormat('yyyy-MM-dd').format(rawDate);
         String date = DateTime.parse(
           item['date'],
         ).toIso8601String().split("T")[0];
 
-        if (!groupedSchedules.containsKey(date)) {
-          groupedSchedules[date] = [];
+        if (!groupedSchedules.containsKey(dateKey)) {
+          groupedSchedules[dateKey] = [];
         }
 
-        groupedSchedules[date]!.add(item);
+        groupedSchedules[dateKey]!.add(item);
       }
 
       setState(() {});
@@ -99,7 +101,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
           : ListView(
               padding: const EdgeInsets.all(20),
               children: groupedSchedules.entries.map((entry) {
-                DateTime date = DateTime.parse(entry.key);
+                DateTime date = DateTime.parse(entry.key).toLocal();
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
