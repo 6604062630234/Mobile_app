@@ -13,8 +13,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',         
-    password: 'astrapl456@',         
-    database: 'myschedule'
+    password: 'K0618649432xyz',         
+    database: 'my_schedule'
 });
 
 db.connect((err) => {
@@ -77,6 +77,29 @@ app.post('/login', (req, res) => {
     });
 });
 
+app.get('/search-schedules', (req, res) => {
+
+  const { title, email } = req.query;
+
+  const sql = `
+    SELECT id, title, description, date, time_start, time_end, color
+    FROM schedules
+    WHERE email = ?
+    AND title LIKE ?
+    ORDER BY date ASC, time_start ASC
+  `;
+
+  db.query(sql, [email, `%${title}%`], (err, result) => {
+
+    if (err) {
+      console.log(err);
+      return res.status(500).send(err);
+    }
+
+    res.json(result);
+  });
+});
+
 app.post('/add-schedule', (req, res) => {
     // 1. รับค่า email จาก req.body ที่ส่งมาจาก Flutter
     const { email, date, title, description, time_start, time_end, color } = req.body;
@@ -95,19 +118,24 @@ app.post('/add-schedule', (req, res) => {
 });
 
 app.get('/get-schedules', (req, res) => {
-    // 1. รับค่า date และ email จาก Query String
-    const { date, email } = req.query; 
 
-    // 2. แก้ไข SQL ให้กรองข้อมูลด้วยทั้ง date และ email
-    const query = 'SELECT * FROM schedules WHERE date = ? AND email = ? ORDER BY time_start ASC';
+  const { date, email } = req.query;
 
-    db.query(query, [date, email], (err, results) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json(err);
-        }
-        res.json(results);
-    });
+  const sql = `
+    SELECT * FROM schedules
+    WHERE date = ?
+    AND email = ?
+    ORDER BY time_start ASC
+  `;
+
+  db.query(sql, [date, email], (err, result) => {
+
+    if (err) {
+      return res.status(500).json(err);
+    }
+
+    res.json(result);
+  });
 });
 
 app.put('/update-schedule/:id', (req, res) => {
