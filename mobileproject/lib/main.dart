@@ -7,10 +7,14 @@ import 'profile.dart';
 import 'manage.dart';
 import 'edit.dart';
 import 'signup.dart';
+import 'notification_service.dart';
+import 'notification.dart';
 
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService.init();
   
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
@@ -47,7 +51,7 @@ class MyApp extends StatelessWidget {
         '/manage': (context) => const ManagePage(),
         '/edit': (context) => const EditPage(),
         '/signup': (context) => const SignUpPage(),
-
+        '/notification': (context) => const NotificationPage(),
       },
     );
   }

@@ -13,8 +13,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',         
-    password: 'astrapl456@',         
-    database: 'myschedule'
+    password: 'K0618649432xyz',         
+    database: 'my_schedule'
 });
 
 db.connect((err) => {

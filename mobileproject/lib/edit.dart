@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'notification_service.dart';
 
 class EditPage extends StatefulWidget {
   const EditPage({super.key});
@@ -99,14 +100,22 @@ class _EditPageState extends State<EditPage> {
 
         if (data['status'] == 'success') {
 
-          if (!mounted) return;
+          DateTime startTime = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+            _startTime.hour,
+            _startTime.minute,
+          );
+
+          await NotificationService.scheduleNotification(
+            id: scheduleId,
+            title: _titleController.text,
+            body: "Activity starting now",
+            time: startTime,
+          );
 
           Navigator.pop(context, true);
-
-        } else {
-
-          throw Exception(data['message']);
-
         }
 
       } else {
@@ -412,14 +421,7 @@ class _EditPageState extends State<EditPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
       ),
-      
-
     );
-    
-
   }
-  
-
 }
