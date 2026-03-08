@@ -50,6 +50,24 @@ class _ManagePageState extends State<ManagePage> {
     _fetchSchedules();
   }
 
+  Future<void> _pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _loading = true;
+      });
+
+      _fetchSchedules();
+    }
+  }
+
   Future<void> _deleteSchedule(int id) async {
     try {
       await http.post(
@@ -173,18 +191,29 @@ class _ManagePageState extends State<ManagePage> {
                   icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                   onPressed: () => _changeDate(-1),
                 ),
-                Column(
-                  children: [
-                    Text(
-                      DateFormat('d').format(_selectedDate),
-                      style: const TextStyle(color: Colors.white, fontSize: 28),
-                    ),
-                    Text(
-                      DateFormat('EEE. MMMM yyyy').format(_selectedDate),
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ],
+
+                GestureDetector(
+                  onTap: _pickDate,
+                  child: Column(
+                    children: [
+                      Text(
+                        DateFormat('d').format(_selectedDate),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                        ),
+                      ),
+                      Text(
+                        DateFormat('EEE. MMMM yyyy').format(_selectedDate),
+                        style: const TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      const SizedBox(height: 4),
+                      const Icon(Icons.calendar_month,
+                          color: Colors.white70, size: 18)
+                    ],
+                  ),
                 ),
+
                 IconButton(
                   icon: const Icon(
                     Icons.arrow_forward_ios,

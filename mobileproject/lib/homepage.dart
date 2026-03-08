@@ -90,6 +90,23 @@ class _MyHomePageState extends State<MyHomePage> {
     _fetchSchedules();
   }
 
+  Future<void> _pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+
+      _fetchSchedules();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color primaryBgColor = Color(0xFF32363E);
@@ -97,7 +114,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       backgroundColor: primaryBgColor,
-
       appBar: AppBar(
         backgroundColor: primaryBgColor,
         elevation: 0,
@@ -110,14 +126,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-
       body: Column(
         children: [
           const Divider(color: Colors.white24, height: 1),
 
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -125,37 +139,45 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: const Icon(
                     Icons.arrow_back_ios,
                     color: Colors.white,
-                    size: 20,
                   ),
                   onPressed: () => _changeDate(-1),
                 ),
 
-                Column(
-                  children: [
-                    Text(
-                      DateFormat('d').format(_selectedDate),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                GestureDetector(
+                  onTap: _pickDate,
+                  child: Column(
+                    children: [
+                      Text(
+                        DateFormat('d').format(_selectedDate),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                        ),
                       ),
-                    ),
 
-                    Text(
-                      DateFormat('EEE. MMMM yyyy').format(_selectedDate),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
+                      Text(
+                        DateFormat('EEE. MMMM yyyy').format(_selectedDate),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 4),
+
+                      const Icon(
+                        Icons.calendar_month,
+                        color: Colors.white70,
+                        size: 18,
+                      ),
+                    ],
+                  ),
                 ),
 
                 IconButton(
                   icon: const Icon(
                     Icons.arrow_forward_ios,
                     color: Colors.white,
-                    size: 20,
                   ),
                   onPressed: () => _changeDate(1),
                 ),
@@ -186,15 +208,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 15),
                         padding: const EdgeInsets.all(15),
-
                         decoration: BoxDecoration(
-                          color: cardColor.withValues(alpha: 0.1),
+                          color: cardColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(15),
                           border: Border(
                             left: BorderSide(color: cardColor, width: 5),
                           ),
                         ),
-
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -258,7 +278,6 @@ class _MyHomePageState extends State<MyHomePage> {
             Navigator.pushReplacementNamed(context, '/profile');
           }
         },
-
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Manage'),
